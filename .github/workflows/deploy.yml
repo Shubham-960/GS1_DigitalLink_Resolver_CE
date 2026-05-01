@@ -1,0 +1,47 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR_NAME: myacr123456
+  IMAGE_NAME: python-app
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build image
+        run: |
+          docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} .
+
+      - name: Login to ACR
+        run: az acr login --name $ACR_NAME
+
+      - name: Push image
+        run: |
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+      - name: Update Container App
+        run: |
+          az containerapp update \
+            --name python-container-app \
+            --resource-group rg-container-app-demo \
+            --image $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
