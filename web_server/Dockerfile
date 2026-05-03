@@ -28,4 +28,4 @@ ADD src /app/
 
 EXPOSE 4000
 
-CMD ["python", "src/main.py"]
+CMD ["python", "main.py"]
