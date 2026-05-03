@@ -25,7 +25,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     server_description = f"The web server is running at https://{os.getenv('FQDN', 'set-domain-name-in-env-variable-FQDN.com')}"
     logger.info(server_description)
 
-    mongo_url = os.getenv('MONGO_URI')
+    mongo_url = os.getenv('MONGO_URI','mongodb://localhost:27017/your_db_name')
     if not mongo_url:
         raise RuntimeError("MONGO_URI environment variable is not set")
     # Log the host only — do not log credentials
