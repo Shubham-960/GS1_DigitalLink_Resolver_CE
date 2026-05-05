@@ -48,7 +48,7 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
             echo "APP_NAME=gs1-app2-dev" >> $GITHUB_ENV
-            echo "IMAGE_TAG=dev" >> $ GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           else
             echo "APP_NAME=gs1-app2" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod" >> $GITHUB_ENV
