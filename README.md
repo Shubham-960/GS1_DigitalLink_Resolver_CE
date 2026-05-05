@@ -151,5 +151,15 @@ We recommend that you upgrade to version 3.0 to take advantage of the new featur
 
 ## Settling in with Resolver CE v3.0?
 It's now time to point your code branch back to the 'master' branch to keep up with the latest updates and improvements. We are looking forward to your feedback and contributions to the project.
+###################################################################################
+Terraform Run to create resources in azure
+client_id note from output and set 3 secrets in GitHub
+GitHub actions-> deploy.yml file(automatic deployment on push to master)
+Made dummy change and push to master, automatic run of deploy.yml
+We got unhealthy error:
+Code: __init__.py -> default mongo_uri
+check dockerfile -> CMD ["python", "main.py"]
+again push -> worked
 
-
+then added the other app in terraform. Created git action for the same.
+Then moved to static web, it also needs deployment token as secret which needs to be copied from azure and set to git secrets 
