@@ -19,7 +19,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True, static_folder='public')
     CORS(app)  # enable CORS
 
-    mongo_url = os.getenv('MONGO_URI')
+    mongo_url = os.getenv('MONGO_URI','mongodb://localhost:27017/your_db_name')
     if not mongo_url:
         raise RuntimeError("MONGO_URI environment variable is not set")
     # Log the host only — do not log credentials
