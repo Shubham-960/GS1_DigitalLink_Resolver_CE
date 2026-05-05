@@ -1,9 +1,5 @@
 name: Manual Deploy SvelteKit to Azure Static Web App
 
-defaults:
-  run:
-    working-directory: Ikea-dl-dashboard
-
 on:
   workflow_dispatch:
     inputs:
@@ -19,6 +15,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: Ikea-dl-dashboard
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -32,10 +32,14 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       - name: Build SvelteKit
         run: pnpm run build
+
+      # Optional: verify build output (helps debugging)
+      - name: Verify build output
+        run: ls -la build
 
       # DEV DEPLOY
       - name: Deploy to DEV
@@ -47,6 +51,7 @@ jobs:
           action: upload
           app_location: Ikea-dl-dashboard
           output_location: Ikea-dl-dashboard/build
+          skip_app_build: true
 
       # PROD DEPLOY
       - name: Deploy to PROD
@@ -58,3 +63,4 @@ jobs:
           action: upload
           app_location: Ikea-dl-dashboard
           output_location: Ikea-dl-dashboard/build
+          skip_app_build: true
