@@ -1,0 +1,88 @@
+name: Manual Deploy to Azure Container Apps
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      branch:
+        description: "Branch to deploy"
+        required: true
+        default: "master"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  RESOURCE_GROUP: gs1-rg
+  ACR_NAME: gs1acr7zjw2   # 🔴 replace
+  IMAGE_NAME: gs1-web
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 📥 Checkout selected branch
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      # 🔐 Azure login via OIDC
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # 🎯 Set target app + tag
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "APP_NAME=gs1-app-dev" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          else
+            echo "APP_NAME=gs1-app" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
+          fi
+
+      # 🐳 Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build ./web_server \
+            -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${IMAGE_TAG}
+
+      # 🔑 Login to ACR
+      - name: ACR Login
+        run: |
+          az acr login --name $ACR_NAME
+
+      # 📦 Push image
+      - name: Push Docker image
+        run: |
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${IMAGE_TAG}
+
+      # 🚀 Deploy
+      - name: Deploy to Container App
+        run: |
+          az containerapp update \
+            --name $APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --image $ACR_NAME.azurecr.io/$IMAGE_NAME:${IMAGE_TAG}
+
+      # 🌐 Output URL
+      - name: Show App URL
+        run: |
+          az containerapp show \
+            --name $APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --query properties.configuration.ingress.fqdn \
+            -o tsv
