@@ -1,5 +1,9 @@
 name: Manual Deploy SvelteKit to Azure Static Web App
 
+defaults:
+  run:
+    working-directory: Ikea-dl-dashboard
+
 on:
   workflow_dispatch:
     inputs:
