@@ -1,0 +1,55 @@
+name: Manual Deploy SvelteKit to Azure Static Web App
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: sveltekit
+
+      - name: Build SvelteKit
+        run: pnpm run build
+        working-directory: sveltekit
+
+      # DEV DEPLOY
+      - name: Deploy to DEV
+        if: ${{ github.event.inputs.environment == 'dev' }}
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_DEV_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "sveltekit"
+          output_location: "build"
+
+      # PROD DEPLOY
+      - name: Deploy to PROD
+        if: ${{ github.event.inputs.environment == 'prod' }}
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_PROD_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "sveltekit"
+          output_location: "build"
